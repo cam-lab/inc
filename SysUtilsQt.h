@@ -39,12 +39,12 @@ inline QString getElapsedTime(const QElapsedTimer& timer)
 class TAppSingleton
 {
 	public:
-		TAppSingleton() : mAppSem("AF_SEM", 1), mSharedMem("AF_SH_MEM"), mIsRunning(false)
+        TAppSingleton(QString name) : mAppSem(name + "_SEM", 1), mSharedMem(name + "_MEM"), mIsRunning(false)
 		{
 			mAppSem.acquire();
 
 			{
-				QSharedMemory sharedMem("AF_SH_MEM");
+                QSharedMemory sharedMem(name + "_MEM");
 				sharedMem.attach();
 			}
 			if(mSharedMem.attach()) {

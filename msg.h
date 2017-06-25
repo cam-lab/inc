@@ -62,8 +62,8 @@ template<typename TWrapper> class TMsgPoolPolicy
 			typedef std::shared_ptr<TWrapper> TBaseMsgWrapperPtr;
 			typedef TQueue<TBaseMsgWrapperPtr, TQueueSl, TWinCsGuard> TMsgWrapperPoolQueue;
 		#else
-			typedef TQueue<TBaseMsgWrapperPtr, TQueueQt, TWinCsGuard> TMsgWrapperPoolQueue;
-			typedef QSharedPointer<TWrapper> TBaseMsgWrapperPtr;
+            typedef QSharedPointer<TWrapper> TBaseMsgWrapperPtr;
+            typedef TQueue<TBaseMsgWrapperPtr, TQueueQt, TWinCsGuard> TMsgWrapperPoolQueue;
 		#endif
 
         static bool releaseMsg(TBaseMsgWrapperPtr& msgWrapperPtr)
