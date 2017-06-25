@@ -138,7 +138,7 @@ template<int Width, int Height, int Id> class ScreenFrameGray : public TScreenFr
                 };
 };
 
-typedef ScreenFrameGray<CfgDefs::ThermoScreenFrameWidth,CfgDefs::ThermoScreenFrameHeight,CfgDefs::ThermoStreamId>    TThermoScreenFrame;
+typedef ScreenFrameGray<CfgDefs::ThermoScreenFrameWidth,CfgDefs::ThermoScreenFrameHeight,CfgDefs::ThermoStreamId>    TThermoScreenFrameGray;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

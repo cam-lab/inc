@@ -4,7 +4,7 @@
 #include "SysUtils.h"
 #include "tqueue.h"
 
-//#include "CfgDefs.h"
+#include "netaddr.h"
 
 #if defined CPP_IMPL
 	#include <memory>

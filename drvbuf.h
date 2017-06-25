@@ -23,8 +23,6 @@ template<typename T, int BufSize> class DrvBuf : public TRawBuf
 };
 
 typedef TBaseMsgWrapperPtr                        TDrvBufPtr;
-typedef DrvBuf<quint8,CfgDefs::EthStreamBufSize>  TDrvBufStreamETH;
-typedef DrvBuf<quint8,CfgDefs::EthCmdBufSize   >  TDrvBufCmdETH;
 
 #endif // DRV_BUF_H
 
