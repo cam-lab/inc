@@ -1,8 +1,6 @@
 #if !defined(RAW_BUF_H)
 #define RAW_BUF_H
 
-//#include "CfgDefs.h"
-
 #include "msg.h"
 
 //-----------------------------------------------------------------------------
