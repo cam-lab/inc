@@ -11,10 +11,6 @@
 
 #include "UDP_Defs.h"
 
-#if !defined(INFINITE)
-    #define INFINITE 0xFFFFFFFF
-#endif
-
 #ifdef QUDP_LIB_EXPORT
     #define QUDP_DLL_API Q_DECL_EXPORT
     //#define QUDP_DLL_API __declspec(dllexport)
