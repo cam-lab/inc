@@ -3,22 +3,9 @@
 
 #include <QMap>
 
-//#include "CfgDefs.h"
-
 #include "SysUtils.h"
 #include "netaddr.h"
-
 #include "msg.h"
-//#include "frame.h"
-//#include "rawbuf.h"
-
-
-//-----------------------------------------------------------------------------
-#if 0 // obsolete
-	class TMainWindowAf;
-	class TFrameFormer;
-	class TDrvLayer;
-#endif
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

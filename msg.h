@@ -3,15 +3,25 @@
 
 #include "SysUtils.h"
 #include "tqueue.h"
-
 #include "netaddr.h"
 
-#if defined CPP_IMPL
+#define QT_IMPL  0
+#define SL_IMPL  1
+#define WIN_IMPL 2
+
+#define MSG_SHARED_PTR_IMPL  SL_IMPL
+#define MSG_QUEUE_IMPL       SL_IMPL
+#if defined(ENA_WIN_API)
+    #define MSG_QUEUE_GUARD_IMPL WIN_IMPL
+#else
+    #define MSG_QUEUE_GUARD_IMPL QT_IMPL
+#endif
+
+#if (MSG_SHARED_PTR_IMPL == SL_IMPL)
 	#include <memory>
 #else
 	//#define QT_SHAREDPOINTER_TRACK_POINTERS
 	#include <QtCore/QSharedPointer>
-
 	#include <QtCore/QDebug>  /*TEST*/
 #endif
 
@@ -58,13 +68,33 @@ template<typename TWrapper> class TMsgPoolPolicy
 	template<typename, typename, typename > friend class TMsgPool;
 
     public:
-		#if defined CPP_IMPL
-			typedef std::shared_ptr<TWrapper> TBaseMsgWrapperPtr;
-			typedef TQueue<TBaseMsgWrapperPtr, TQueueSl, TWinCsGuard> TMsgWrapperPoolQueue;
-		#else
+        //---
+        #if (MSG_SHARED_PTR_IMPL == SL_IMPL)
+            typedef std::shared_ptr<TWrapper> TBaseMsgWrapperPtr;
+        #elif (MSG_SHARED_PTR_IMPL == QT_IMPL)
             typedef QSharedPointer<TWrapper> TBaseMsgWrapperPtr;
-            typedef TQueue<TBaseMsgWrapperPtr, TQueueQt, TWinCsGuard> TMsgWrapperPoolQueue;
-		#endif
+        #else
+            #error "BAD MSG_SHARED_PTR_IMPL OPTION"
+        #endif
+
+        //---
+        #if (MSG_QUEUE_GUARD_IMPL == QT_IMPL)
+            typedef TQtMutexGuard TGuard;
+        #elif (MSG_QUEUE_GUARD_IMPL == WIN_IMPL)
+            typedef TWinCsGuard TGuard;
+        #else
+            #error "BAD MSG_QUEUE_GUARD_IMPL OPTION"
+        #endif
+
+        //---
+        #if (MSG_QUEUE_IMPL == SL_IMPL)
+            typedef TQueue<TBaseMsgWrapperPtr, TQueueSl, TGuard> TMsgWrapperPoolQueue;
+        #elif (MSG_QUEUE_IMPL == QT_IMPL)
+            typedef TQueue<TBaseMsgWrapperPtr, TQueueQt, TGuard> TMsgWrapperPoolQueue;
+        #else
+            #error "BAD MSG_QUEUE_IMPL OPTION"
+        #endif
+
 
         static bool releaseMsg(TBaseMsgWrapperPtr& msgWrapperPtr)
         {
@@ -357,7 +387,7 @@ template<typename TMsg, typename TMsgBase = TMsg, typename RoutingPolicy = TRout
 
 	~TMsgPool()
 	{
-		#if defined CPP_IMPL
+        #if !defined(ENA_FW_QT)
 			printf("[~MsgPool] pool handle: %p, poolSize: %d, objects in the pool: %lldd\n",this, mPoolSize, size());
 		#else
 			qDebug() << "[~MsgPool] " << "pool handle:" << this << "poolSize:" << mPoolSize << "objects in the pool:" << size();
