@@ -3,7 +3,7 @@
 
 #include <queue>
 
-#if defined(QT_CORE_LIB)            /*CHECK THIS!*/
+#if defined(ENA_FW_QT)
 	#include <QtCore/QQueue>
 	#include <QtCore/QMutex>
 	#include <QtCore/QMutexLocker>
@@ -12,7 +12,7 @@
 	#include <QtCore/QWriteLocker>
 #endif
 
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(ENA_WIN_API)
 	#include <windows.h>
 #endif
 
@@ -54,7 +54,7 @@ template <class T> class TQueueSl
 		}
 };
 
-#if defined(QT_CORE_LIB)            /*CHECK THIS!*/
+#if defined(ENA_FW_QT)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 template <class T> class TQueueQt
@@ -123,7 +123,7 @@ class TNoGuard
 		~TNoGuard() {}
 };
 
-#if defined(_WIN32)
+#if defined(_WIN32) && defined(ENA_WIN_API)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 class TWinCsGuard
@@ -165,7 +165,7 @@ class TWinCsGuard
 };
 #endif
 
-#if defined(QT_CORE_LIB)            /*CHECK THIS!*/
+#if defined(ENA_FW_QT)
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 class TQtMutexGuard
