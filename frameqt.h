@@ -3,9 +3,7 @@
 
 #include <QtGui/QImage>
 
-//#include "CfgDefs.h"
-
-#include "Frame.h"
+#include "frame.h"
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -115,8 +113,5 @@ template<int Width, int Height, int Id> class ScreenFrame : public TScreenFrame
                 ScreenFrame<Width,Height,Id>* createMsg() { return static_cast<ScreenFrame<Width,Height,Id>*>(TScreenFrame::TCreator::createMsg()); }
 		};
 };
-
-typedef ScreenFrame<CfgDefs::ThermoScreenFrameWidth,CfgDefs::ThermoScreenFrameHeight,CfgDefs::ThermoStreamId>  TThermoScreenFrame;
-typedef ScreenFrame<CfgDefs::VideoScreenFrameWidth,CfgDefs::VideoScreenFrameHeight,CfgDefs::VideoStreamId>     TVideoScreenFrame;
 
 #endif // FRAME_QT_H

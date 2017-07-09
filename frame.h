@@ -1,10 +1,8 @@
 #if !defined(FRAME_H)
 #define FRAME_H
 
-//#include "CfgDefs.h"
-
 #include "msg.h"
-#include "RawBuf.h"
+#include "rawbuf.h"
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -122,8 +120,8 @@ template <typename T> class TRawFrameImpl : public TRawBuf
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-typedef TFrame<TRawFrameImpl<quint8>>                 TScreenFrameGray;
-typedef TBaseMsgWrapperPtr	TScreenFramePtr;
+typedef TFrame<TRawFrameImpl<quint8>> TScreenFrameGray;
+typedef TBaseMsgWrapperPtr	      TScreenFramePtr;
 
 template<int Width, int Height, int Id> class ScreenFrameGray : public TScreenFrameGray
 {
@@ -138,12 +136,10 @@ template<int Width, int Height, int Id> class ScreenFrameGray : public TScreenFr
                 };
 };
 
-typedef ScreenFrameGray<CfgDefs::ThermoScreenFrameWidth,CfgDefs::ThermoScreenFrameHeight,CfgDefs::ThermoStreamId>    TThermoScreenFrameGray;
-
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 typedef TFrame<TRawFrameImpl<quint16>> TRawFrame;
-typedef TBaseMsgWrapperPtr	           TRawFramePtr;
+typedef TBaseMsgWrapperPtr	       TRawFramePtr;
 
 template<int Width, int Height, int Id> class RawFrame : public TRawFrame
 {
@@ -157,9 +153,6 @@ template<int Width, int Height, int Id> class RawFrame : public TRawFrame
 				RawFrame<Width,Height,Id>* createMsg() { return static_cast<RawFrame<Width,Height,Id>*>(TRawFrame::TCreator::createMsg()); }
 		};
 };
-
-typedef RawFrame<CfgDefs::ThermoScreenFrameWidth,CfgDefs::ThermoScreenFrameHeight,CfgDefs::ThermoStreamId> TThermoRawFrame;
-typedef RawFrame<CfgDefs::VideoScreenFrameWidth,CfgDefs::VideoScreenFrameHeight,CfgDefs::VideoStreamId>    TVideoRawFrame;
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------

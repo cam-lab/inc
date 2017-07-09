@@ -9,6 +9,10 @@
 	#include <stdint.h>
 #endif
 
+#if !defined(INFINITE)
+    #define INFINITE 0xFFFFFFFF
+#endif
+
 namespace UDP_LIB
 {
 	typedef enum
