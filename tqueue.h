@@ -248,7 +248,7 @@ template
 class TQueue : public TQueueType<T>, public TGuardType
 {
 	protected:
-		TQueue& selfNoConst() const  { return const_cast<typename TQueue<T,TQueueType,TGuardType>&>(*this); }
+        TQueue& selfNoConst() const  { return const_cast</*typename*/ TQueue<T,TQueueType,TGuardType>&>(*this); }
 
 	public:
 		typedef typename TQueue::SizeType_ SizeType;
