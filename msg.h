@@ -1,6 +1,10 @@
 #if !defined(MSG_H)
 #define MSG_H
 
+#if defined(ENA_FW_QT)
+#include <QDebug>
+#endif
+
 #include "SysUtils.h"
 #include "tqueue.h"
 #include "netaddr.h"
@@ -285,7 +289,7 @@ class TMsgWrapper :
 		{
             TMsg* msg = checkMsg<TMsg>(&(*msgWrapper));
 			if(msg) {
-				copyNetPoints(msgWrapper,this);
+                this->copyNetPoints(msgWrapper,this);
                 msgWrapper->setMsgId(this->msgId());
 				*msg = *mMsg;
 				return true;

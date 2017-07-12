@@ -21,7 +21,7 @@ class TBaseFrame
 		virtual bool resizeImg(int width, int height) = 0;
 
 		virtual QImage* getImage() = 0;
-		template <typename T> typename T::TPixel* getPixelBuf() { return reinterpret_cast<T::TPixel*>(getPixelBuf(sizeof(T::TPixel))); }
+        template <typename T> typename T::TPixel* getPixelBuf() { return reinterpret_cast<typename T::TPixel*>(getPixelBuf(sizeof(typename T::TPixel))); }
         virtual void* getPixelBuf() = 0;
 
 		virtual TBaseFrame& operator=(const TBaseFrame&) = 0;
@@ -49,7 +49,7 @@ template <typename TFrameImpl> class TFrame : public TBaseFrame
 
 		virtual QImage* getImage() { return mFrameImpl->getImage(); }
 		virtual void* getPixelBuf(int pixelSize) { return mFrameImpl->getPixelBuf(pixelSize); }
-                virtual void* getPixelBuf() { return mFrameImpl->getPixelBuf(sizeof(TFrameImpl::TPixel)); }
+                virtual void* getPixelBuf() { return mFrameImpl->getPixelBuf(sizeof(TPixel)); }
 
 		virtual TBaseFrame& operator=(const TBaseFrame& baseRight)
 		{
@@ -75,14 +75,14 @@ template <typename T> class TRawFrameImpl : public TRawBuf
 	friend class TFrame<TRawFrameImpl>;
 
 	public:
-		typedef typename T TPixel;
+        typedef /*typename*/ T TPixel;
 
 	private:
 		//---------------------------------------------------------------------
 		class TCreator : public TRawBuf::TCreator<TPixel>
 		{
 			public:
-				TCreator(int width, int height) : mWidth(width), mHeight(height), TRawBuf::TCreator<T>(mWidth*mHeight) {}
+                TCreator(int width, int height) : TRawBuf::TCreator<T>(width*height), mWidth(width), mHeight(height)  {}
 				TFrame<TRawFrameImpl>* createMsg() { return new TFrame<TRawFrameImpl>(new TRawFrameImpl(mWidth, mHeight));	}
 
 			private:
@@ -192,10 +192,10 @@ class TSerializer
 //-----------------------------------------------------------------------------
 template<typename T1, typename T2> bool serializeFrame(TRawFramePtr framePtr, uint8_t* dst, uint32_t* streamLen)
 {
-	T1* frame;
-	T2::TPixel* frameBuf;
+    T1* frame;
+    typename T2::TPixel* frameBuf;
 
-	if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->getPixelBuf<T2>())) {
+    if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->TBaseFrame::getPixelBuf<T2>())) {
 		TSerializer serializer(dst);
         const uint32_t ClassId    = 0; // only for start-up
         const uint32_t MsgClassId = framePtr->msgClassId();
