@@ -83,7 +83,7 @@ template <QImage::Format Format> class TQtFrameImpl
 			return true;
 		}
 		QImage* getImage() { return mImage; }
-		void* getPixelBuf(int pixelSize) { return (pixelSize == sizeof(TQtImageFormat<Format>::TPixel)) ? mImage->bits() : 0; }
+        void* getPixelBuf(int pixelSize) { return (pixelSize == sizeof(typename TQtImageFormat<Format>::TPixel)) ? mImage->bits() : 0; }
 
 		//---
 		TQtFrameImpl(int width, int height) : mImage(0) { resizeImg(width, height); }

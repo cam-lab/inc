@@ -1,6 +1,10 @@
 #if !defined(MSG_H)
 #define MSG_H
 
+#if defined(ENA_FW_QT)
+#include <QDebug>
+#endif
+
 #include "SysUtils.h"
 #include "tqueue.h"
 #include "netaddr.h"
@@ -257,6 +261,9 @@ class TBaseMsgWrapper :
 };
 
 //-----------------------------------------------------------------------------
+template<typename TMsg> TMsg* checkMsg(TBaseMsgWrapper<TMsgPoolPolicy>* msgWrapper);
+template<typename TMsg> TMsg* checkMsg(TBaseMsgWrapper<TMsgPoolPolicy>& msgWrapper);
+
 //-----------------------------------------------------------------------------
 template
 <
@@ -272,18 +279,18 @@ class TMsgWrapper :
     public:
 		typedef typename TBaseMsgWrapper<MsgPoolPolicy,RoutingPolicy>::TBaseMsgWrapperPtr TBaseMsgWrapperPtr;
 
-		TMsgWrapper(TMsg* msg) : TBaseMsgWrapper(), mMsg(msg) {}
+        TMsgWrapper(TMsg* msg) : TBaseMsgWrapper<MsgPoolPolicy,RoutingPolicy>(), mMsg(msg) {}
 		virtual ~TMsgWrapper() { MsgDeletor<TMsg>::DeleteMsg(mMsg); /* qDebug() << "[~MsgWrapper] msgPoolId:" << msgPoolId() << "classId:" << msgClassId(); */ }
-		virtual int msgClassId() const { return TTypeEnumerator<TMsg>::classId(); }
+        virtual int msgClassId() const { return SysUtils::TTypeEnumerator<TMsg>::classId(); }
         TMsg* getMsg() const { return mMsg; }
 
 	protected:
 		virtual bool msgCloneImpl(TBaseMsgWrapperPtr msgWrapper)
 		{
-			TMsg* msg = checkMsg<TMsg>(&(*msgWrapper));
+            TMsg* msg = checkMsg<TMsg>(&(*msgWrapper));
 			if(msg) {
-				copyNetPoints(msgWrapper,this);
-				msgWrapper->setMsgId(msgId());
+                this->copyNetPoints(msgWrapper,this);
+                msgWrapper->setMsgId(this->msgId());
 				*msg = *mMsg;
 				return true;
 			}
@@ -300,8 +307,8 @@ template<template<typename> class PoolPolicy, typename RoutingPolicy>
 template<typename TMsg>
 TMsg* TBaseMsgWrapper<PoolPolicy,RoutingPolicy>::checkMsg(TBaseMsgWrapper<PoolPolicy,RoutingPolicy>* msgWrapper)
 {
-	if(msgWrapper->msgClassId() == TMsgWrapper<TMsg,PoolPolicy,RoutingPolicy>::classId()) {
-		return (static_cast<TMsgWrapper<TMsg,PoolPolicy,RoutingPolicy>*>(msgWrapper))->getMsg();
+    if(msgWrapper->msgClassId() == TMsgWrapper<TMsg,PoolPolicy,RoutingPolicy>::classId()) {
+        return (static_cast<TMsgWrapper<TMsg,PoolPolicy,RoutingPolicy>*>(msgWrapper))->getMsg();
     } else {
         return 0;
     }
@@ -360,10 +367,10 @@ template<typename TMsg> TMsg* getMsg(TBaseMsgWrapperPtr& msgWrapperPtr)
 
 
 //-----------------------------------------------------------------------------
-static bool releaseMsg(TBaseMsgWrapperPtr& msgWrapperPtr)
+/*static bool releaseMsg(TBaseMsgWrapperPtr& msgWrapperPtr)
 {
     return TBaseMsgWrapper<TMsgPoolPolicy>::releaseMsg(msgWrapperPtr);
-}
+}*/
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -371,7 +378,7 @@ template<typename TMsg, typename TMsgBase = TMsg, typename RoutingPolicy = TRout
 {
     public:
         typedef typename TMsg::TCreator TMsgCreator;
-		typedef typename TMsgWrapper<TMsgBase,TMsgPoolPolicy,RoutingPolicy,TMsgDeleted> TMsgWrapper;
+        typedef /*typename*/ TMsgWrapper<TMsgBase,TMsgPoolPolicy,RoutingPolicy,TMsgDeleted> TMsgPoolWrapper;
 
     TMsgPool(int poolSize, TMsgCreator msgCreator) :
                                                     TBaseMsgWrapper<TMsgPoolPolicy>::TMsgWrapperPoolQueue(),
@@ -379,9 +386,9 @@ template<typename TMsg, typename TMsgBase = TMsg, typename RoutingPolicy = TRout
 													mPoolDeleted(false)
     {
         for(int msgPoolId = 0; msgPoolId < poolSize; ++msgPoolId) {
-            TMsgWrapper* msgWrapperPtr = new TMsgWrapper(msgCreator.createMsg());
+            TMsgPoolWrapper* msgWrapperPtr = new TMsgPoolWrapper(msgCreator.createMsg());
 			msgWrapperPtr->assignPool(msgPoolId,this, &mPoolDeleted);
-			put(TMsgWrapper::createPoolWrapper(msgWrapperPtr));
+            put(TMsgPoolWrapper::createPoolWrapper(msgWrapperPtr));
         }
     }
 

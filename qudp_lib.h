@@ -12,13 +12,13 @@
 #include "UDP_Defs.h"
 
 #ifdef QUDP_LIB_EXPORT
-    #define QUDP_DLL_API Q_DECL_EXPORT
+    //#define QUDP_DLL_API Q_DECL_EXPORT
     //#define QUDP_DLL_API __declspec(dllexport)
-    //#define QUDP_DLL_API
+    #define QUDP_DLL_API
 #else
-    #define QUDP_DLL_API Q_DECL_IMPORT
+    //#define QUDP_DLL_API Q_DECL_IMPORT
     //#define QUDP_DLL_API __declspec(dllimport)
-    //#define QUDP_DLL_API
+    #define QUDP_DLL_API
 #endif
 
 namespace UDP_LIB
