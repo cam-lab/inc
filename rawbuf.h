@@ -59,7 +59,9 @@ class TRawBuf
                 mBuf = _aligned_malloc(mByteBufSize,BufAlignment);
     #else
                 free(mBuf);
-                posix_memalign(&mBuf, BufAlignment, mByteBufSize);
+                int res = posix_memalign(&mBuf, BufAlignment, mByteBufSize);
+                if(res)
+                   qDebug() << "[ERROR] unsucessfull posix_memalign";
     #endif
 				mByteDataLen = 0;
 			}
