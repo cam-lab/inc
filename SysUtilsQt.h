@@ -60,9 +60,9 @@ class TAppSingleton
 		bool isRunning() const { return mIsRunning; }
 
 	private:
-		bool				mIsRunning;
+        QSystemSemaphore	mAppSem;
 		QSharedMemory		mSharedMem;
-		QSystemSemaphore	mAppSem;
+        bool				mIsRunning;
 };
 
 }

@@ -24,7 +24,7 @@ class TBufPool
         }
         template <typename T> bool getBuf(TBaseMsgWrapperPtr& buf)
         {
-            typename T* pool = getPool<T>();
+            /*typename*/ T* pool = getPool<T>();
 			if(pool) {
 				return pool->get(buf);
             } else {

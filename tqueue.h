@@ -248,7 +248,7 @@ template
 class TQueue : public TQueueType<T>, public TGuardType
 {
 	protected:
-		TQueue& selfNoConst() const  { return const_cast<typename TQueue<T,TQueueType,TGuardType>&>(*this); }
+        TQueue& selfNoConst() const  { return const_cast</*typename*/ TQueue<T,TQueueType,TGuardType>&>(*this); }
 
 	public:
 		typedef typename TQueue::SizeType_ SizeType;
@@ -273,7 +273,7 @@ template
 inline bool TQueue<T,TQueueType,TGuardType>::empty() const
 {
 	typename TGuardType::TReadLocker locker(selfNoConst());
-	return empty_();
+    return this->empty_();
 }
 
 //-----------------------------------------------------------------------------
@@ -286,7 +286,7 @@ template
 inline typename TQueue<T,TQueueType,TGuardType>::SizeType TQueue<T,TQueueType,TGuardType>::size() const
 {
 	typename TGuardType::TReadLocker locker(selfNoConst());
-	return size_();
+    return this->size_();
 }
 
 //-----------------------------------------------------------------------------
@@ -299,7 +299,7 @@ template
 inline void TQueue<T,TQueueType,TGuardType>::put(const T& obj)
 {
 	typename TGuardType::TWriteLocker locker(selfNoConst());
-	put_(obj);
+    this->put_(obj);
 }
 
 //-----------------------------------------------------------------------------
@@ -312,7 +312,7 @@ template
 inline void TQueue<T,TQueueType,TGuardType>::pop()
 {
         typename TGuardType::TWriteLocker locker(selfNoConst());
-        pop_();
+        this->pop_();
 }
 
 //-----------------------------------------------------------------------------
@@ -325,7 +325,7 @@ template
 inline bool TQueue<T,TQueueType,TGuardType>::readFront(T& obj)
 {
 	typename TGuardType::TReadLocker locker(selfNoConst()); // ? read or write locker
-	return readFront_(obj);
+    return this->readFront_(obj);
 }
 
 //-----------------------------------------------------------------------------
@@ -338,7 +338,7 @@ template
 inline bool TQueue<T,TQueueType,TGuardType>::get(T& obj)
 {
 	typename TGuardType::TWriteLocker locker(selfNoConst());
-	return get_(obj);
+    return this->get_(obj);
 }
 
 #endif // TQUEUE_H

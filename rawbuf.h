@@ -1,6 +1,7 @@
 #if !defined(RAW_BUF_H)
 #define RAW_BUF_H
 
+#include <cstring>
 #include "msg.h"
 
 //-----------------------------------------------------------------------------
@@ -44,13 +45,24 @@ class TRawBuf
 		static const size_t BufAlignment = 128;
 
 		TRawBuf(unsigned bufSize, unsigned elemSize) : mElemSize(0), mByteBufSize(0), mByteDataLen(0), mBuf(0) { resizeBuf(bufSize,elemSize); }
-		virtual ~TRawBuf() { _aligned_free(mBuf); }
+    #if defined(Q_CC_MSVC)
+        virtual ~TRawBuf() { _aligned_free(mBuf); }
+    #else
+        virtual ~TRawBuf() { free(mBuf); }
+    #endif
 		void resizeBuf(unsigned bufSize, unsigned elemSize)
 		{
 			if(mByteBufSize != bufSize*elemSize) {
 				mByteBufSize = bufSize*elemSize;
-				_aligned_free(mBuf);
-				mBuf = _aligned_malloc(mByteBufSize,BufAlignment);
+    #if defined(Q_CC_MSVC)
+                _aligned_free(mBuf);
+                mBuf = _aligned_malloc(mByteBufSize,BufAlignment);
+    #else
+                free(mBuf);
+                int res = posix_memalign(&mBuf, BufAlignment, mByteBufSize);
+                if(res)
+                   qDebug() << "[ERROR] unsucessfull posix_memalign";
+    #endif
 				mByteDataLen = 0;
 			}
 			if(elemSize != mElemSize) {
