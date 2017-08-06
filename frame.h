@@ -43,13 +43,13 @@ template <typename TFrameImpl> class TFrame : public TBaseFrame
 
 		virtual int width() const { return mFrameImpl->width(); }
 		virtual int height() const { return mFrameImpl->height(); }
-                virtual int pixelSize() const { return mFrameImpl->pixelSize(); }
-                virtual int colorCount() const { return mFrameImpl->colorCount(); }
+        virtual int pixelSize() const { return mFrameImpl->pixelSize(); }
+        virtual int colorCount() const { return mFrameImpl->colorCount(); }
 		virtual bool resizeImg(int width, int height) {  return mFrameImpl->resizeImg(width, height); }
 
 		virtual QImage* getImage() { return mFrameImpl->getImage(); }
 		virtual void* getPixelBuf(int pixelSize) { return mFrameImpl->getPixelBuf(pixelSize); }
-                virtual void* getPixelBuf() { return mFrameImpl->getPixelBuf(sizeof(TPixel)); }
+        virtual void* getPixelBuf() { return mFrameImpl->getPixelBuf(sizeof(TPixel)); }
 
 		virtual TBaseFrame& operator=(const TBaseFrame& baseRight)
 		{
@@ -92,8 +92,8 @@ template <typename T> class TRawFrameImpl : public TRawBuf
 
 		int width() const { return mWidth; }
 		int height() const { return mHeight; }
-                int pixelSize() const { return sizeof(TPixel); }
-                int colorCount() const { return 0; }
+        int pixelSize() const { return sizeof(TPixel); }
+        int colorCount() const { return 0; }
 		QImage* getImage() { return 0; }
 		bool resizeImg(int width, int height)
 		{
@@ -130,9 +130,9 @@ template<int Width, int Height, int Id> class ScreenFrameGray : public TScreenFr
 
         class TCreator : public TScreenFrameGray::TCreator
                 {
-                        public:
-                explicit TCreator() : TScreenFrameGray::TCreator(Width,Height) {}
-                ScreenFrameGray<Width,Height,Id>* createMsg() { return static_cast<ScreenFrameGray<Width,Height,Id>*>(TScreenFrameGray::TCreator::createMsg()); }
+                    public:
+                        explicit TCreator() : TScreenFrameGray::TCreator(Width,Height) {}
+                        ScreenFrameGray<Width,Height,Id>* createMsg() { return static_cast<ScreenFrameGray<Width,Height,Id>*>(TScreenFrameGray::TCreator::createMsg()); }
                 };
 };
 
