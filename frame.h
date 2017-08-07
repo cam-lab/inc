@@ -195,7 +195,7 @@ template<typename T1, typename T2> bool serializeFrame(TRawFramePtr framePtr, ui
     T1* frame;
     typename T2::TPixel* frameBuf;
 
-    if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->TBaseFrame::getPixelBuf<T2>())) {
+    if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->template getPixelBuf<T2>())) {
 		TSerializer serializer(dst);
         const uint32_t ClassId    = 0; // only for start-up
         const uint32_t MsgClassId = framePtr->msgClassId();
