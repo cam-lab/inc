@@ -54,6 +54,8 @@ template <QImage::Format Format> class TQtFrameImpl
 	public:
 		typedef typename TQtImageFormat<Format>::TPixel TPixel;
 
+        bool operator==(const TQtFrameImpl<Format>& right) { return *mImage == *(right.mImage); }
+
 	private:
 		//---------------------------------------------------------------------
 		class TCreator

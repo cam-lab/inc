@@ -24,7 +24,13 @@ class TBaseFrame
         template <typename T> typename T::TPixel* getPixelBuf() { return reinterpret_cast<typename T::TPixel*>(getPixelBuf(sizeof(typename T::TPixel))); }
         virtual void* getPixelBuf() = 0;
 
-		virtual TBaseFrame& operator=(const TBaseFrame&) = 0;
+        virtual TBaseFrame& operator=(const TBaseFrame&)
+        {
+            qDebug() << "TBaseFrame::operator=";
+            return *this;
+        }
+        virtual bool operator==(const TBaseFrame&) = 0;
+        bool operator!=(const TBaseFrame& right) { return !(*this == right); }
 
 	protected:
 		virtual ~TBaseFrame() {}
@@ -51,15 +57,26 @@ template <typename TFrameImpl> class TFrame : public TBaseFrame
 		virtual void* getPixelBuf(int pixelSize) { return mFrameImpl->getPixelBuf(pixelSize); }
         virtual void* getPixelBuf() { return mFrameImpl->getPixelBuf(sizeof(TPixel)); }
 
+        //---
 		virtual TBaseFrame& operator=(const TBaseFrame& baseRight)
 		{
 			const TFrame<TFrameImpl>& derivedRight = static_cast<const TFrame<TFrameImpl>&>(baseRight);
 			if((width() != derivedRight.width()) || (height() != derivedRight.height()))
 				return *this;
 			*mFrameImpl = *derivedRight.mFrameImpl;
-			//qDebug() << "TBaseFrame& TFrame<TFrameImpl>::operator=";
+            TBaseFrame::operator=(baseRight);
+            qDebug() << "TBaseFrame& TFrame<TFrameImpl>::operator=";
 			return *this;
 		}
+
+        //---
+        virtual bool operator==(const TBaseFrame& baseRight)
+        {
+            const TFrame<TFrameImpl>& derivedRight = static_cast<const TFrame<TFrameImpl>&>(baseRight);
+            if((width() != derivedRight.width()) || (height() != derivedRight.height()))
+                return false;
+            return (*mFrameImpl == *derivedRight.mFrameImpl);
+        }
 
 	protected:
 		virtual ~TFrame() { delete mFrameImpl; /* qDebug() << "~Frame"; */ }
@@ -121,7 +138,7 @@ template <typename T> class TRawFrameImpl : public TRawBuf
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 typedef TFrame<TRawFrameImpl<quint8>> TScreenFrameGray;
-typedef TBaseMsgWrapperPtr	      TScreenFramePtr;
+typedef TBaseMsgWrapperPtr	          TScreenFramePtr;
 
 template<int Width, int Height, int Id> class ScreenFrameGray : public TScreenFrameGray
 {
@@ -139,7 +156,7 @@ template<int Width, int Height, int Id> class ScreenFrameGray : public TScreenFr
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 typedef TFrame<TRawFrameImpl<quint16>> TRawFrame;
-typedef TBaseMsgWrapperPtr	       TRawFramePtr;
+typedef TBaseMsgWrapperPtr	           TRawFramePtr;
 
 template<int Width, int Height, int Id> class RawFrame : public TRawFrame
 {
