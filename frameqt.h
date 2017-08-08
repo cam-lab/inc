@@ -47,12 +47,13 @@ template <> class TQtImageFormat<QImage::Format_ARGB32>
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-template <QImage::Format Format> class TQtFrameImpl
+template <QImage::Format Format, typename T2 = uint16_t> class TQtFrameImpl
 {
 	friend class TFrame<TQtFrameImpl>;
 
 	public:
 		typedef typename TQtImageFormat<Format>::TPixel TPixel;
+        typedef          T2                             TMetaDataElem;
 
         bool operator==(const TQtFrameImpl<Format>& right) { return *mImage == *(right.mImage); }
 
