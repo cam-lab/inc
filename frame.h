@@ -22,7 +22,7 @@ class TMetaInfo
         //---
         TMetaInfo& operator=(const TMetaInfo& right)
         {
-            qDebug() << "TMetaInfo::operator=";
+            //qDebug() << "TMetaInfo::operator=";
             if(metaElemSize() != right.metaElemSize()) {
                 return *this;
             }
@@ -34,7 +34,7 @@ class TMetaInfo
         //---
         bool operator==(const TMetaInfo& right)
         {
-            qDebug() << "TMetaInfo::operator==";
+            //qDebug() << "TMetaInfo::operator==";
             if(metaElemSize() != right.metaElemSize())
                 return false;
             if(mWriteIdx != right.mWriteIdx)
@@ -107,6 +107,7 @@ class TBaseFrame
         virtual bool operator==(const TBaseFrame&) = 0;
         bool operator!=(const TBaseFrame& right) { return !(*this == right); }
         virtual TMetaInfo& metaInfo() = 0;
+        template <typename T> T& castMetaInfo() { return static_cast<T&>(metaInfo());}
 
 	protected:
 		virtual ~TBaseFrame() {}
@@ -143,7 +144,7 @@ template <typename TFrameImpl> class TFrame : public TBaseFrame
 			*mFrameImpl = *derivedRight.mFrameImpl;
             mMetaInfo   = derivedRight.mMetaInfo;
             // not need to use TBaseFrame::operator=(baseRight);
-            qDebug() << "TBaseFrame& TFrame<TFrameImpl>::operator=";
+            //qDebug() << "TBaseFrame& TFrame<TFrameImpl>::operator=";
 			return *this;
 		}
 
