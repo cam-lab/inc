@@ -80,6 +80,9 @@ template <typename T> class TMetaInfoImpl : public TMetaInfo
             std::memcpy(data,bufPtr,dataLen*metaElemSize());
             return true;
         }
+
+        //---
+        T operator[](size_t index) const { return *(reinterpret_cast<const T*>(mMetaBuf+index*metaElemSize())); }
 };
 
 //-----------------------------------------------------------------------------
