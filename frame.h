@@ -85,6 +85,7 @@ template <typename T> class TMetaInfoImpl : public TMetaInfo
 
         //---
         T operator[](size_t index) const { return *(reinterpret_cast<const T*>(mMetaBuf+index*metaElemSize())); }
+        T& operator[](size_t index) { return *(reinterpret_cast<T*>(mMetaBuf+index*metaElemSize())); }
 };
 
 //-----------------------------------------------------------------------------
