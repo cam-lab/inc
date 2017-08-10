@@ -12,12 +12,14 @@ class TMetaInfo
 {
     public:
         TMetaInfo() : mWriteIdx(0) {}
-        size_t metaInfoSize() const { return mWriteIdx; }
         void reset() { mWriteIdx = 0; }
         virtual size_t metaBufSize() const { return MetaBufSize; }
         virtual size_t metaElemSize() const = 0;
         virtual bool write(void* data, size_t dataLen) = 0;
         virtual bool read(void* data, size_t beginIdx, size_t dataLen) = 0;
+        size_t metaInfoSize() const { return mWriteIdx; }
+        size_t metaInfoByteSize() const { return mWriteIdx*metaElemSize(); }
+        size_t metaBufByteSize() const { return MetaBufSize; }
 
         //---
         TMetaInfo& operator=(const TMetaInfo& right)
