@@ -11,7 +11,7 @@
 class TMetaInfo
 {
     public:
-        TMetaInfo() : mWriteIdx(0) {}
+        TMetaInfo() : mWriteIdx(0), mAppendInfoSize(0) {}
         void reset() { mWriteIdx = 0; }
         virtual size_t metaBufSize() const { return MetaBufSize; }
         virtual size_t metaElemSize() const = 0;
@@ -28,7 +28,8 @@ class TMetaInfo
             if(metaElemSize() != right.metaElemSize()) {
                 return *this;
             }
-            mWriteIdx = right.mWriteIdx;
+            mWriteIdx       = right.mWriteIdx;
+            mAppendInfoSize = right.mAppendInfoSize;
             std::memcpy(mMetaBuf,right.mMetaBuf,mWriteIdx*metaElemSize());
             return *this;
         }
@@ -51,6 +52,7 @@ class TMetaInfo
 
         uint8_t mMetaBuf[MetaBufSize];
         size_t  mWriteIdx;
+        size_t  mAppendInfoSize;
 };
 
 //-----------------------------------------------------------------------------
