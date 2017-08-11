@@ -20,6 +20,7 @@ class TMetaInfo
         size_t metaInfoSize() const { return mWriteIdx; }
         size_t metaInfoByteSize() const { return mWriteIdx*metaElemSize(); }
         size_t metaBufByteSize() const { return MetaBufSize; }
+        size_t metaAppendInfoSize() const { return mAppendInfoSize; }
 
         //---
         TMetaInfo& operator=(const TMetaInfo& right)
