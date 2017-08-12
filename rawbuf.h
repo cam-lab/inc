@@ -66,7 +66,7 @@ class TRawBuf
 		{
 			if(mByteBufSize != bufSize*elemSize) {
 				mByteBufSize = bufSize*elemSize;
-                #if defined(Q_CC_MSVC)
+                #if defined(Q_OS_WIN)
                     _aligned_free(mBuf);
                     mBuf = _aligned_malloc(mByteBufSize,BufAlignment);
                 #else
