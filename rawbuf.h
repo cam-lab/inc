@@ -56,7 +56,7 @@ class TRawBuf
 
 		TRawBuf(unsigned bufSize, unsigned elemSize) : mElemSize(0), mByteBufSize(0), mByteDataLen(0), mBuf(0) { resizeBuf(bufSize,elemSize); }
 
-        #if defined(Q_CC_MSVC)
+        #if defined(Q_OS_WIN)
             virtual ~TRawBuf() { _aligned_free(mBuf); }
         #else
             virtual ~TRawBuf() { free(mBuf); }
@@ -66,7 +66,7 @@ class TRawBuf
 		{
 			if(mByteBufSize != bufSize*elemSize) {
 				mByteBufSize = bufSize*elemSize;
-                #if defined(Q_CC_MSVC)
+                #if defined(Q_OS_WIN)
                     _aligned_free(mBuf);
                     mBuf = _aligned_malloc(mByteBufSize,BufAlignment);
                 #else
