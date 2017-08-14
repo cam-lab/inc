@@ -1,8 +1,95 @@
 #if !defined(FRAME_H)
 #define FRAME_H
 
+#include <cstdint>
+
 #include "msg.h"
 #include "rawbuf.h"
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+class TMetaInfo
+{
+    public:
+        TMetaInfo() : mWriteIdx(0), mAppendInfoSize(0) {}
+        void reset() { mWriteIdx = 0; }
+        virtual size_t metaBufSize() const { return MetaBufSize; }
+        virtual size_t metaElemSize() const = 0;
+        virtual bool write(void* data, size_t dataLen) = 0;
+        virtual bool read(void* data, size_t beginIdx, size_t dataLen) = 0;
+        size_t metaInfoSize() const { return mWriteIdx; }
+        size_t metaInfoByteSize() const { return mWriteIdx*metaElemSize(); }
+        size_t metaBufByteSize() const { return MetaBufSize; }
+        size_t metaAppendInfoSize() const { return mAppendInfoSize; }
+
+        //---
+        TMetaInfo& operator=(const TMetaInfo& right)
+        {
+            //qDebug() << "TMetaInfo::operator=";
+            if(metaElemSize() != right.metaElemSize()) {
+                return *this;
+            }
+            mWriteIdx       = right.mWriteIdx;
+            mAppendInfoSize = right.mAppendInfoSize;
+            std::memcpy(mMetaBuf,right.mMetaBuf,mWriteIdx*metaElemSize());
+            return *this;
+        }
+
+        //---
+        bool operator==(const TMetaInfo& right)
+        {
+            //qDebug() << "TMetaInfo::operator==";
+            if(metaElemSize() != right.metaElemSize())
+                return false;
+            if(mWriteIdx != right.mWriteIdx)
+                return false;
+            return (std::memcmp(mMetaBuf,right.mMetaBuf,mWriteIdx*metaElemSize()) == 0);
+        }
+
+        bool operator!=(const TMetaInfo& right) { return !(*this == right); }
+
+    protected:
+        static const size_t MetaBufSize = 1024;
+
+        uint8_t mMetaBuf[MetaBufSize];
+        size_t  mWriteIdx;
+        size_t  mAppendInfoSize;
+};
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+template <typename T> class TMetaInfoImpl : public TMetaInfo
+{
+    public:
+        TMetaInfoImpl() : TMetaInfo() {}
+        virtual size_t metaBufSize() const { return TMetaInfo::metaBufSize()/sizeof(T); }
+        virtual size_t metaElemSize() const { return sizeof(T); }
+
+        //---
+        virtual bool write(void* data, size_t dataLen)
+        {
+            if(dataLen + mWriteIdx > metaBufSize())
+                return false;
+            T* bufPtr = reinterpret_cast<T*>(mMetaBuf + mWriteIdx*metaElemSize());
+            std::memcpy(bufPtr,data,dataLen*metaElemSize());
+            mWriteIdx += dataLen;
+            return true;
+        }
+
+        //---
+        virtual bool read(void* data, size_t beginIdx, size_t dataLen)
+        {
+            if((beginIdx + dataLen) > metaInfoSize())
+                return false;
+            T* bufPtr = reinterpret_cast<T*>(mMetaBuf + beginIdx*metaElemSize());
+            std::memcpy(data,bufPtr,dataLen*metaElemSize());
+            return true;
+        }
+
+        //---
+        T operator[](size_t index) const { return *(reinterpret_cast<const T*>(mMetaBuf+index*metaElemSize())); }
+        T& operator[](size_t index) { return *(reinterpret_cast<T*>(mMetaBuf+index*metaElemSize())); }
+};
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
@@ -24,7 +111,12 @@ class TBaseFrame
         template <typename T> typename T::TPixel* getPixelBuf() { return reinterpret_cast<typename T::TPixel*>(getPixelBuf(sizeof(typename T::TPixel))); }
         virtual void* getPixelBuf() = 0;
 
-		virtual TBaseFrame& operator=(const TBaseFrame&) = 0;
+        //---
+        virtual TBaseFrame& operator=(const TBaseFrame&) = 0;
+        virtual bool operator==(const TBaseFrame&) = 0;
+        bool operator!=(const TBaseFrame& right) { return !(*this == right); }
+        virtual TMetaInfo& metaInfo() = 0;
+        template <typename T> T& castMetaInfo() { return static_cast<T&>(metaInfo());}
 
 	protected:
 		virtual ~TBaseFrame() {}
@@ -36,46 +128,64 @@ class TBaseFrame
 template <typename TFrameImpl> class TFrame : public TBaseFrame
 {
 	public:
-		typedef typename TFrameImpl::TCreator TCreator;
-		typedef typename TFrameImpl::TPixel TPixel;
+        typedef typename TFrameImpl::TCreator      TCreator;
+        typedef typename TFrameImpl::TPixel        TPixel;
+        typedef typename TFrameImpl::TMetaDataElem TMetaDataElem;
 
 		explicit TFrame(TFrameImpl* frameImpl) : mFrameImpl(frameImpl) { /* qDebug() << "Frame"; */}
 
 		virtual int width() const { return mFrameImpl->width(); }
 		virtual int height() const { return mFrameImpl->height(); }
-                virtual int pixelSize() const { return mFrameImpl->pixelSize(); }
-                virtual int colorCount() const { return mFrameImpl->colorCount(); }
+        virtual int pixelSize() const { return mFrameImpl->pixelSize(); }
+        virtual int colorCount() const { return mFrameImpl->colorCount(); }
 		virtual bool resizeImg(int width, int height) {  return mFrameImpl->resizeImg(width, height); }
 
 		virtual QImage* getImage() { return mFrameImpl->getImage(); }
 		virtual void* getPixelBuf(int pixelSize) { return mFrameImpl->getPixelBuf(pixelSize); }
-                virtual void* getPixelBuf() { return mFrameImpl->getPixelBuf(sizeof(TPixel)); }
+        virtual void* getPixelBuf() { return mFrameImpl->getPixelBuf(sizeof(TPixel)); }
 
+        //---
 		virtual TBaseFrame& operator=(const TBaseFrame& baseRight)
 		{
 			const TFrame<TFrameImpl>& derivedRight = static_cast<const TFrame<TFrameImpl>&>(baseRight);
 			if((width() != derivedRight.width()) || (height() != derivedRight.height()))
 				return *this;
 			*mFrameImpl = *derivedRight.mFrameImpl;
-			//qDebug() << "TBaseFrame& TFrame<TFrameImpl>::operator=";
+            mMetaInfo   = derivedRight.mMetaInfo;
+            // not need to use TBaseFrame::operator=(baseRight);
+            //qDebug() << "TBaseFrame& TFrame<TFrameImpl>::operator=";
 			return *this;
 		}
+
+        //---
+        virtual bool operator==(const TBaseFrame& baseRight)
+        {
+            const TFrame<TFrameImpl>& derivedRight = static_cast<const TFrame<TFrameImpl>&>(baseRight);
+            if((width() != derivedRight.width()) || (height() != derivedRight.height()))
+                return false;
+            return (*mFrameImpl == *(derivedRight.mFrameImpl)) && (mMetaInfo == derivedRight.mMetaInfo);
+        }
+
+        //---
+        virtual TMetaInfo& metaInfo() { return mMetaInfo; }
 
 	protected:
 		virtual ~TFrame() { delete mFrameImpl; /* qDebug() << "~Frame"; */ }
 
-		TFrameImpl* mFrameImpl;
+        TFrameImpl*                  mFrameImpl;
+        TMetaInfoImpl<TMetaDataElem> mMetaInfo;
 };
 
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-template <typename T> class TRawFrameImpl : public TRawBuf
+template <typename T, typename T2 = uint16_t> class TRawFrameImpl : public TRawBuf
 {
 	friend class TFrame<TRawFrameImpl>;
 
 	public:
-        typedef /*typename*/ T TPixel;
+        typedef /*typename*/ T  TPixel;
+        typedef              T2 TMetaDataElem;
 
 	private:
 		//---------------------------------------------------------------------
@@ -92,8 +202,8 @@ template <typename T> class TRawFrameImpl : public TRawBuf
 
 		int width() const { return mWidth; }
 		int height() const { return mHeight; }
-                int pixelSize() const { return sizeof(TPixel); }
-                int colorCount() const { return 0; }
+        int pixelSize() const { return sizeof(TPixel); }
+        int colorCount() const { return 0; }
 		QImage* getImage() { return 0; }
 		bool resizeImg(int width, int height)
 		{
@@ -121,7 +231,7 @@ template <typename T> class TRawFrameImpl : public TRawBuf
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 typedef TFrame<TRawFrameImpl<quint8>> TScreenFrameGray;
-typedef TBaseMsgWrapperPtr	      TScreenFramePtr;
+typedef TBaseMsgWrapperPtr	          TScreenFramePtr;
 
 template<int Width, int Height, int Id> class ScreenFrameGray : public TScreenFrameGray
 {
@@ -130,16 +240,16 @@ template<int Width, int Height, int Id> class ScreenFrameGray : public TScreenFr
 
         class TCreator : public TScreenFrameGray::TCreator
                 {
-                        public:
-                explicit TCreator() : TScreenFrameGray::TCreator(Width,Height) {}
-                ScreenFrameGray<Width,Height,Id>* createMsg() { return static_cast<ScreenFrameGray<Width,Height,Id>*>(TScreenFrameGray::TCreator::createMsg()); }
+                    public:
+                        explicit TCreator() : TScreenFrameGray::TCreator(Width,Height) {}
+                        ScreenFrameGray<Width,Height,Id>* createMsg() { return static_cast<ScreenFrameGray<Width,Height,Id>*>(TScreenFrameGray::TCreator::createMsg()); }
                 };
 };
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
 typedef TFrame<TRawFrameImpl<quint16>> TRawFrame;
-typedef TBaseMsgWrapperPtr	       TRawFramePtr;
+typedef TBaseMsgWrapperPtr	           TRawFramePtr;
 
 template<int Width, int Height, int Id> class RawFrame : public TRawFrame
 {
@@ -195,7 +305,7 @@ template<typename T1, typename T2> bool serializeFrame(TRawFramePtr framePtr, ui
     T1* frame;
     typename T2::TPixel* frameBuf;
 
-    if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->TBaseFrame::getPixelBuf<T2>())) {
+    if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->template getPixelBuf<T2>())) {
 		TSerializer serializer(dst);
         const uint32_t ClassId    = 0; // only for start-up
         const uint32_t MsgClassId = framePtr->msgClassId();
