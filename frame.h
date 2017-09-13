@@ -13,13 +13,14 @@ class TMetaInfo
     public:
         TMetaInfo() : mWriteIdx(0), mAppendInfoSize(0) {}
         void reset() { mWriteIdx = 0; }
-        virtual size_t metaBufSize() const { return MetaBufSize; }
+        static size_t MetaBufSize() { return MetaBufByteSize; }
+        virtual size_t metaBufSize() const { return MetaBufSize(); }
         virtual size_t metaElemSize() const = 0;
         virtual bool write(void* data, size_t dataLen) = 0;
         virtual bool read(void* data, size_t beginIdx, size_t dataLen) = 0;
         size_t metaInfoSize() const { return mWriteIdx; }
         size_t metaInfoByteSize() const { return mWriteIdx*metaElemSize(); }
-        size_t metaBufByteSize() const { return MetaBufSize; }
+        size_t metaBufByteSize() const { return MetaBufSize(); }
         size_t metaAppendInfoSize() const { return mAppendInfoSize; }
 
         //---
@@ -49,9 +50,9 @@ class TMetaInfo
         bool operator!=(const TMetaInfo& right) { return !(*this == right); }
 
     protected:
-        static const size_t MetaBufSize = 1024;
+        static const size_t MetaBufByteSize = 1024;
 
-        uint8_t mMetaBuf[MetaBufSize];
+        uint8_t mMetaBuf[MetaBufByteSize];
         size_t  mWriteIdx;
         size_t  mAppendInfoSize;
 };
