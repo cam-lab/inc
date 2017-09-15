@@ -83,6 +83,22 @@ namespace IP_QPIPE_LIB
     };
 
     //---
+    typedef uint32_t (*TransferFunc)(void* obj, uint8_t* dst, uint32_t maxLen);
+    struct TPipeTxTransferFuncObj
+    {
+        unsigned     pipeKey;
+        TransferFunc transferFunc;
+        void*        obj;
+        bool         rxMustBePresent;
+
+        //--- DEBUG
+        uint32_t     txBufIdx;
+        uint32_t     txGblIdx;
+        uint32_t     dataLen;
+    };
+
+
+    //---
     struct TPipeRxParams
     {
         unsigned         pipeKey;
