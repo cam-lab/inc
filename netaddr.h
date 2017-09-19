@@ -19,7 +19,7 @@ inline bool operator<(const NetAddrType& el1, const NetAddrType& el2) {
 }
 
 typedef NetAddrType TNetAddr;
-static TNetAddr NetNoAddr() { return TNetAddr(-1); }
+inline TNetAddr NetNoAddr() { return TNetAddr(-1); }
 
 }
 
