@@ -313,7 +313,7 @@ template<typename T1, typename T2> bool serializeFrame(TRawFramePtr framePtr, ui
         const uint32_t NetSrc     = framePtr->netSrc();
         const uint32_t NetDst     = framePtr->netDst();
         const uint32_t FrameNum   = framePtr->msgId();
-        const uint32_t PixelSize  = sizeof(T2::TPixel);
+        const uint32_t PixelSize  = sizeof(typename T2::TPixel);
         const uint32_t Height     = frame->height();
         const uint32_t Width      = frame->width();
 
