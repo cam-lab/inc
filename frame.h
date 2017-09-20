@@ -340,6 +340,9 @@ template<typename T1, typename T2> bool serializeFrame(TRawFramePtr framePtr, ui
         serializer.write(Height);
         serializer.write(Width);
 
+        //---
+        frame->metaInfo().serialize(serializer);
+
 		serializer.write(frameBuf,frame->size());
 		*streamLen = serializer.streamLen();
 		return true;
