@@ -8,6 +8,41 @@
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+class TSerializer
+{
+    public:
+        TSerializer(void* streamBuf) : mStream(streamBuf), mStreamLen(0) {}
+        template<typename T> void* write(T var)
+        {
+            T* streamBuf = reinterpret_cast<T*>(mStream);
+            *streamBuf++ = var;
+            mStreamLen += sizeof(T);
+            mStream = streamBuf;
+            return mStream;
+        }
+        template<typename T> void* write(T* array, unsigned arrayLen)
+        {
+            const unsigned ArrayByteLen = sizeof(T)*arrayLen;
+            T* streamBuf = reinterpret_cast<T*>(mStream);
+            mStreamLen += ArrayByteLen;
+            std::memcpy(mStream,array,ArrayByteLen);
+            streamBuf += arrayLen;
+            mStream = streamBuf;
+            return mStream;
+        }
+
+        uint32_t streamLen() const { return mStreamLen; }
+        void* streamPtr() const { return mStream; }
+
+    private:
+        void*  mStream;
+        uint32_t mStreamLen;
+};
+
+//-----------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 class TMetaInfo
 {
     public:
@@ -267,38 +302,6 @@ template<int Width, int Height, int Id> class RawFrame : public TRawFrame
 
 //-----------------------------------------------------------------------------
 //-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
-class TSerializer
-{
-	public:
-		TSerializer(void* streamBuf) : mStream(streamBuf), mStreamLen(0) {}
-		template<typename T> void* write(T var)
-		{
-			T* streamBuf = reinterpret_cast<T*>(mStream);
-			*streamBuf++ = var;
-			mStreamLen += sizeof(T);
-			mStream = streamBuf;
-			return mStream;
-		}
-		template<typename T> void* write(T* array, unsigned arrayLen)
-		{
-			const unsigned ArrayByteLen = sizeof(T)*arrayLen;
-			T* streamBuf = reinterpret_cast<T*>(mStream);
-			mStreamLen += ArrayByteLen;
-			std::memcpy(mStream,array,ArrayByteLen);
-			streamBuf += arrayLen;
-			mStream = streamBuf;
-			return mStream;
-		}
-
-		uint32_t streamLen() const { return mStreamLen; }
-		void* streamPtr() const { return mStream; }
-
-	private:
-		void*  mStream;
-		uint32_t mStreamLen;
-};
 
 //-----------------------------------------------------------------------------
 template<typename T1, typename T2> bool serializeFrame(TRawFramePtr framePtr, uint8_t* dst, uint32_t* streamLen)
