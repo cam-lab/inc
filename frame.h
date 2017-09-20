@@ -57,6 +57,17 @@ class TMetaInfo
         size_t metaInfoByteSize() const { return mWriteIdx*metaElemSize(); }
         size_t metaBufByteSize() const { return MetaBufSize(); }
         size_t metaAppendInfoSize() const { return mAppendInfoSize; }
+        size_t metaAppendInfoByteSize() const { return mAppendInfoSize*metaElemSize(); }
+
+        //---
+        void serialize(TSerializer& serializer)
+        {
+            serializer.write(static_cast<uint32_t>(MetaBufSize()));
+            serializer.write(static_cast<uint32_t>(metaElemSize()));
+            serializer.write(static_cast<uint32_t>(metaInfoByteSize()));
+            serializer.write(static_cast<uint32_t>(metaAppendInfoByteSize()));
+            serializer.write(mMetaBuf,static_cast<uint32_t>(MetaBufSize()));
+        }
 
         //---
         TMetaInfo& operator=(const TMetaInfo& right)
