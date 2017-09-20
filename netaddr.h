@@ -8,18 +8,18 @@ namespace CfgDefs {
 typedef int64_t NetAddrWordType;
 struct NetAddrType
 {
-	NetAddrType(NetAddrWordType nAddr = -1) : netAddr(nAddr) {}
-	operator NetAddrWordType() const { return netAddr; }
+    NetAddrType(NetAddrWordType nAddr = -1) : netAddr(nAddr) {}
+    operator NetAddrWordType() const { return netAddr; }
 
-	NetAddrWordType netAddr;
+    NetAddrWordType netAddr;
 };
 
 inline bool operator<(const NetAddrType& el1, const NetAddrType& el2) {
-	return el1.netAddr < el2.netAddr;
+    return el1.netAddr < el2.netAddr;
 }
 
 typedef NetAddrType TNetAddr;
-static TNetAddr NetNoAddr() { return TNetAddr(-1); }
+inline TNetAddr NetNoAddr() { return TNetAddr(-1); }
 
 }
 
