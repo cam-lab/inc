@@ -342,35 +342,32 @@ template<int Width, int Height, int Id> class RawFrame : public TRawFrame
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-template<typename T1, typename T2> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst, uint32_t maxLen)
+template<typename T> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst, uint32_t maxLen)
 {
-    T1* frame;
-    typename T2::TPixel* frameBuf;
+    T* frame;
 
-    if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->template getPixelBuf<T2>())) {
+    if(framePtr && (frame = checkMsg<T>(framePtr))) {
         TSerializer serializer(dst,maxLen);
-        const uint32_t ClassId    = 0; // only for start-up
-        const uint32_t MsgClassId = framePtr->msgClassId();
-        const uint32_t NetSrc     = framePtr->netSrc();
-        const uint32_t NetDst     = framePtr->netDst();
-        const uint32_t FrameNum   = framePtr->msgId();
-        const uint32_t PixelSize  = sizeof(typename T2::TPixel);
-        const uint32_t Height     = frame->height();
-        const uint32_t Width      = frame->width();
 
-        serializer.write(ClassId);
-        serializer.write(MsgClassId);
-        serializer.write(NetSrc);
-        serializer.write(NetDst);
-        serializer.write(FrameNum);
-        serializer.write(PixelSize);
-        serializer.write(Height);
-        serializer.write(Width);
+        //--- test data
+        serializer.write(static_cast<uint32_t>(0)); // only for start-up
 
-        //---
+        //--- frame container data
+        serializer.write(static_cast<uint32_t>(framePtr->msgClassId()));
+        serializer.write(static_cast<uint32_t>(framePtr->netSrc()));
+        serializer.write(static_cast<uint32_t>(framePtr->netDst()));
+        serializer.write(static_cast<uint32_t>(framePtr->msgId()));   // host frame num
+
+        //--- frame data
+        serializer.write(static_cast<uint32_t>(frame->pixelSize()));
+        serializer.write(static_cast<uint32_t>(frame->height()));
+        serializer.write(static_cast<uint32_t>(frame->width()));
+
+        //--- frame metainfo
         frame->metaInfo().serialize(serializer);
 
-		serializer.write(frameBuf,frame->size());
+        //--- frame pixel buf
+        serializer.write(static_cast<uint8_t*>(frame->getPixelBuf()),frame->byteSize());
         return serializer.streamLen();
 	} else {
         return 0;
