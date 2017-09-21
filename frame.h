@@ -48,25 +48,25 @@ class TMetaInfo
     public:
         TMetaInfo() : mWriteIdx(0), mAppendInfoSize(0) {}
         void reset() { mWriteIdx = 0; }
-        static size_t MetaBufSize() { return MetaBufByteSize; }
-        virtual size_t metaBufSize() const { return MetaBufSize(); }
-        virtual size_t metaElemSize() const = 0;
-        virtual bool write(void* data, size_t dataLen) = 0;
-        virtual bool read(void* data, size_t beginIdx, size_t dataLen) = 0;
-        size_t metaInfoSize() const { return mWriteIdx; }
-        size_t metaInfoByteSize() const { return mWriteIdx*metaElemSize(); }
-        size_t metaBufByteSize() const { return MetaBufSize(); }
-        size_t metaAppendInfoSize() const { return mAppendInfoSize; }
-        size_t metaAppendInfoByteSize() const { return mAppendInfoSize*metaElemSize(); }
+        static uint32_t MetaBufSize() { return MetaBufByteSize; }
+        virtual uint32_t metaBufSize() const { return MetaBufSize(); }
+        virtual uint32_t metaElemSize() const = 0;
+        virtual bool write(void* data, uint32_t dataLen) = 0;
+        virtual bool read(void* data, uint32_t beginIdx, uint32_t dataLen) = 0;
+        uint32_t metaInfoSize() const { return mWriteIdx; }
+        uint32_t metaInfoByteSize() const { return mWriteIdx*metaElemSize(); }
+        uint32_t metaBufByteSize() const { return MetaBufSize(); }
+        uint32_t metaAppendInfoSize() const { return mAppendInfoSize; }
+        uint32_t metaAppendInfoByteSize() const { return mAppendInfoSize*metaElemSize(); }
 
         //---
         void serialize(TSerializer& serializer)
         {
-            serializer.write(static_cast<uint32_t>(MetaBufSize()));
-            serializer.write(static_cast<uint32_t>(metaElemSize()));
-            serializer.write(static_cast<uint32_t>(metaInfoByteSize()));
-            serializer.write(static_cast<uint32_t>(metaAppendInfoByteSize()));
-            serializer.write(mMetaBuf,static_cast<uint32_t>(MetaBufSize()));
+            serializer.write(MetaBufSize());
+            serializer.write(metaElemSize());
+            serializer.write(metaInfoByteSize());
+            serializer.write(metaAppendInfoByteSize());
+            serializer.write(mMetaBuf,MetaBufSize());
         }
 
         //---
@@ -96,11 +96,11 @@ class TMetaInfo
         bool operator!=(const TMetaInfo& right) { return !(*this == right); }
 
     protected:
-        static const size_t MetaBufByteSize = 1024;
+        static const uint32_t MetaBufByteSize = 1024;
 
-        uint8_t mMetaBuf[MetaBufByteSize];
-        size_t  mWriteIdx;
-        size_t  mAppendInfoSize;
+        uint8_t  mMetaBuf[MetaBufByteSize];
+        uint32_t mWriteIdx;
+        uint32_t mAppendInfoSize;
 };
 
 //-----------------------------------------------------------------------------
@@ -109,11 +109,11 @@ template <typename T> class TMetaInfoImpl : public TMetaInfo
 {
     public:
         TMetaInfoImpl() : TMetaInfo() {}
-        virtual size_t metaBufSize() const { return TMetaInfo::metaBufSize()/sizeof(T); }
-        virtual size_t metaElemSize() const { return sizeof(T); }
+        virtual uint32_t metaBufSize() const { return TMetaInfo::metaBufSize()/sizeof(T); }
+        virtual uint32_t metaElemSize() const { return sizeof(T); }
 
         //---
-        virtual bool write(void* data, size_t dataLen)
+        virtual bool write(void* data, uint32_t dataLen)
         {
             if(dataLen + mWriteIdx > metaBufSize())
                 return false;
@@ -124,7 +124,7 @@ template <typename T> class TMetaInfoImpl : public TMetaInfo
         }
 
         //---
-        virtual bool read(void* data, size_t beginIdx, size_t dataLen)
+        virtual bool read(void* data, uint32_t beginIdx, uint32_t dataLen)
         {
             if((beginIdx + dataLen) > metaInfoSize())
                 return false;
@@ -134,8 +134,8 @@ template <typename T> class TMetaInfoImpl : public TMetaInfo
         }
 
         //---
-        T operator[](size_t index) const { return *(reinterpret_cast<const T*>(mMetaBuf+index*metaElemSize())); }
-        T& operator[](size_t index) { return *(reinterpret_cast<T*>(mMetaBuf+index*metaElemSize())); }
+        T operator[](uint32_t index) const { return *(reinterpret_cast<const T*>(mMetaBuf+index*metaElemSize())); }
+        T& operator[](uint32_t index) { return *(reinterpret_cast<T*>(mMetaBuf+index*metaElemSize())); }
 };
 
 //-----------------------------------------------------------------------------
