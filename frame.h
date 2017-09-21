@@ -13,32 +13,59 @@
 class TSerializer
 {
     public:
-        TSerializer(void* streamBuf) : mStream(streamBuf), mStreamLen(0) {}
-        template<typename T> void* write(T var)
+        TSerializer(void* streamBuf, uint32_t maxLen) : MaxLen(maxLen), mStream(streamBuf), mStreamLen(0), mBufOverrun(false) {}
+        bool isOk() const { return !mBufOverrun; }
+        uint32_t streamLen() const { return isOk() ? mStreamLen : 0; }
+        void* streamPtr() const { return isOk() ? mStream : 0; }
+
+        //---
+        template<typename T> uint32_t write(T var)
         {
+            //---
+            if(!isOk()) {
+                return 0;
+            }
+
+            //---
+            if((mStreamLen + sizeof(T)) > MaxLen) {
+                mBufOverrun = true;
+                return 0;
+            }
             T* streamBuf = reinterpret_cast<T*>(mStream);
             *streamBuf++ = var;
             mStreamLen += sizeof(T);
             mStream = streamBuf;
-            return mStream;
+            return mStreamLen;
         }
-        template<typename T> void* write(T* array, unsigned arrayLen)
+
+        //---
+        template<typename T> uint32_t write(T* array, unsigned arrayLen)
         {
+            //---
+            if(!isOk()) {
+                return 0;
+            }
+
+            //---
             const unsigned ArrayByteLen = sizeof(T)*arrayLen;
+            if((mStreamLen + ArrayByteLen) > MaxLen) {
+                mBufOverrun = true;
+                return 0;
+            }
+
             T* streamBuf = reinterpret_cast<T*>(mStream);
             mStreamLen += ArrayByteLen;
             std::memcpy(mStream,array,ArrayByteLen);
             streamBuf += arrayLen;
             mStream = streamBuf;
-            return mStream;
+            return mStreamLen;
         }
 
-        uint32_t streamLen() const { return mStreamLen; }
-        void* streamPtr() const { return mStream; }
-
     private:
-        void*  mStream;
-        uint32_t mStreamLen;
+        const uint32_t MaxLen;
+        void*          mStream;
+        uint32_t       mStreamLen;
+        bool           mBufOverrun;
 };
 
 //-----------------------------------------------------------------------------
@@ -315,13 +342,13 @@ template<int Width, int Height, int Id> class RawFrame : public TRawFrame
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-template<typename T1, typename T2> bool serializeFrame(TRawFramePtr framePtr, uint8_t* dst, uint32_t* streamLen)
+template<typename T1, typename T2> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst, uint32_t maxLen)
 {
     T1* frame;
     typename T2::TPixel* frameBuf;
 
     if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->template getPixelBuf<T2>())) {
-		TSerializer serializer(dst);
+        TSerializer serializer(dst,maxLen);
         const uint32_t ClassId    = 0; // only for start-up
         const uint32_t MsgClassId = framePtr->msgClassId();
         const uint32_t NetSrc     = framePtr->netSrc();
@@ -344,11 +371,9 @@ template<typename T1, typename T2> bool serializeFrame(TRawFramePtr framePtr, ui
         frame->metaInfo().serialize(serializer);
 
 		serializer.write(frameBuf,frame->size());
-		*streamLen = serializer.streamLen();
-		return true;
+        return serializer.streamLen();
 	} else {
-		*streamLen  = 0;
-		return false;
+        return 0;
 	}
 }
 
