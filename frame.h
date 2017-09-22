@@ -379,4 +379,38 @@ template<typename T> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst
 	}
 }
 
+//-----------------------------------------------------------------------------
+template<typename T> bool deserializeFrame(TRawFramePtr framePtr, void* src, uint32_t srcLen)
+{
+    T* frame;
+    if(framePtr && (frame = checkMsg<T>(framePtr))) {
+        uint32_t* srcPtr32 = static_cast<uint32_t*>(src);
+
+        //--- 'magic number' check
+        if(srcPtr32[0] != 0) {
+            return false;
+        }
+
+        //--- frame compatibility check
+        if((frame->pixelSize() != srcPtr32[5]) || (frame->height() != srcPtr32[6]) || (frame->width() != srcPtr32[7])) {
+            return false;
+        }
+
+        //--- frame container data
+        // msgClassId - not changed (srcPtr32[1])
+        // msgPoolId  - not changed (really it's buf number in pool), this data is not serialized
+        framePtr->setNetSrc(srcPtr32[2]);
+        framePtr->setNetDst(srcPtr32[3]);
+        framePtr->setMsgId(srcPtr32[4]);
+
+        //--- frame data
+        const uint32_t FrameInfoLen = 8*sizeof(uint32_t);
+        uint8_t* pixelBuf = static_cast<uint8_t*>(src) + (FrameInfoLen + TMetaInfo::MetaInfoObjRawLen());
+        std::memcpy(frame->getPixelBuf(),pixelBuf,frame->byteSize());
+    } else {
+        return false;
+    }
+    return true;
+}
+
 #endif // FRAME_H
