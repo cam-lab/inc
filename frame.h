@@ -87,13 +87,17 @@ class TMetaInfo
         uint32_t metaAppendInfoByteSize() const { return mAppendInfoSize*metaElemSize(); }
 
         //---
-        void serialize(TSerializer& serializer)
+        bool serialize(TSerializer& serializer)
         {
+            if(!serializer.isOk()) {
+                return false;
+            }
             serializer.write(MetaBufSize());
             serializer.write(metaElemSize());
             serializer.write(metaInfoByteSize());
             serializer.write(metaAppendInfoByteSize());
             serializer.write(mMetaBuf,MetaBufSize());
+            return serializer.isOk();
         }
 
         //---
