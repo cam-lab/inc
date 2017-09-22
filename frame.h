@@ -355,21 +355,21 @@ template<typename T> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst
         TSerializer serializer(dst,maxLen);
 
         //--- test data
-        serializer.write(static_cast<uint32_t>(0)); // only for start-up
+        serializer.write(static_cast<uint32_t>(0));                      // [offset:  0] 'magic number'
 
         //--- frame container data
-        serializer.write(static_cast<uint32_t>(framePtr->msgClassId()));
-        serializer.write(static_cast<uint32_t>(framePtr->netSrc()));
-        serializer.write(static_cast<uint32_t>(framePtr->netDst()));
-        serializer.write(static_cast<uint32_t>(framePtr->msgId()));   // host frame num
+        serializer.write(static_cast<uint32_t>(framePtr->msgClassId())); // [offset:  1]
+        serializer.write(static_cast<uint32_t>(framePtr->netSrc()));     // [offset:  2]
+        serializer.write(static_cast<uint32_t>(framePtr->netDst()));     // [offset:  3]
+        serializer.write(static_cast<uint32_t>(framePtr->msgId()));      // [offset:  4] host frame num
 
         //--- frame data
-        serializer.write(static_cast<uint32_t>(frame->pixelSize()));
-        serializer.write(static_cast<uint32_t>(frame->height()));
-        serializer.write(static_cast<uint32_t>(frame->width()));
+        serializer.write(static_cast<uint32_t>(frame->pixelSize()));     // [offset:  5]
+        serializer.write(static_cast<uint32_t>(frame->height()));        // [offset:  6]
+        serializer.write(static_cast<uint32_t>(frame->width()));         // [offset:  7]
 
         //--- frame metainfo
-        frame->metaInfo().serialize(serializer);
+        frame->metaInfo().serialize(serializer);                         // [offset:  8]
 
         //--- frame pixel buf
         serializer.write(static_cast<uint8_t*>(frame->getPixelBuf()),frame->byteSize());
