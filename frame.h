@@ -421,14 +421,17 @@ template<typename T> bool deserializeFrame(TRawFramePtr framePtr, void* src, uin
         if(frame->width() != *srcPtr32++)      // [offset:  7] frameWidth
             return false;
 
+        //--- frame metainfo
+        void* pixelBuf = TMetaInfo::deserialize(srcPtr32, frame->metaInfo());
+        if(!pixelBuf)
+            return false;
+
         //--- frame data
-        const uint32_t FrameInfoLen = 8*sizeof(uint32_t);
-        uint8_t* pixelBuf = static_cast<uint8_t*>(src) + (FrameInfoLen + TMetaInfo::MetaInfoObjRawLen());
         std::memcpy(frame->getPixelBuf(),pixelBuf,frame->byteSize());
+        return true;
     } else {
         return false;
     }
-    return true;
 }
 
 #endif // FRAME_H
