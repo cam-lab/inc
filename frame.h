@@ -87,13 +87,33 @@ class TMetaInfo
         uint32_t metaAppendInfoByteSize() const { return mAppendInfoSize*metaElemSize(); }
 
         //---
-        void serialize(TSerializer& serializer)
+        bool serialize(TSerializer& serializer)
         {
+            if(!serializer.isOk()) {
+                return false;
+            }
             serializer.write(MetaBufSize());
             serializer.write(metaElemSize());
             serializer.write(metaInfoByteSize());
             serializer.write(metaAppendInfoByteSize());
             serializer.write(mMetaBuf,MetaBufSize());
+            return serializer.isOk();
+        }
+
+        //---
+        static void* deserialize(void* src, TMetaInfo& obj)
+        {
+            uint32_t* srcPtr32 = static_cast<uint32_t*>(src);
+            if(obj.MetaBufSize() != *srcPtr32++)                    // [offset:  0] MetaBufSize() check
+                return 0;
+            if(obj.metaElemSize() != *srcPtr32++)                   // [offset:  1] metaElemSize() check
+                return 0;
+            obj.mWriteIdx       = (*srcPtr32++)/obj.metaElemSize(); // [offset:  2] metaInfoByteSize()
+            obj.mAppendInfoSize = (*srcPtr32++)/obj.metaElemSize(); // [offset:  3] metaAppendInfoByteSize()
+
+            std::memcpy(obj.mMetaBuf,srcPtr32,obj.MetaBufSize());   // [offset:  4] mMetaBuf
+            srcPtr32 += (obj.MetaBufSize()/sizeof(uint32_t));
+            return srcPtr32;
         }
 
         //---
@@ -342,39 +362,79 @@ template<int Width, int Height, int Id> class RawFrame : public TRawFrame
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-template<typename T1, typename T2> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst, uint32_t maxLen)
+template<typename T> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst, uint32_t maxLen)
 {
-    T1* frame;
-    typename T2::TPixel* frameBuf;
+    T* frame;
 
-    if(framePtr && (frame = checkMsg<T1>(framePtr)) && (frameBuf = frame->template getPixelBuf<T2>())) {
+    if(framePtr && (frame = checkMsg<T>(framePtr))) {
         TSerializer serializer(dst,maxLen);
-        const uint32_t ClassId    = 0; // only for start-up
-        const uint32_t MsgClassId = framePtr->msgClassId();
-        const uint32_t NetSrc     = framePtr->netSrc();
-        const uint32_t NetDst     = framePtr->netDst();
-        const uint32_t FrameNum   = framePtr->msgId();
-        const uint32_t PixelSize  = sizeof(typename T2::TPixel);
-        const uint32_t Height     = frame->height();
-        const uint32_t Width      = frame->width();
 
-        serializer.write(ClassId);
-        serializer.write(MsgClassId);
-        serializer.write(NetSrc);
-        serializer.write(NetDst);
-        serializer.write(FrameNum);
-        serializer.write(PixelSize);
-        serializer.write(Height);
-        serializer.write(Width);
+        //--- test data
+        serializer.write(static_cast<uint32_t>(0));                      // [offset:  0] 'magic number'
 
-        //---
-        frame->metaInfo().serialize(serializer);
+        //--- frame container data
+        serializer.write(static_cast<uint32_t>(framePtr->msgClassId())); // [offset:  1]
+        serializer.write(static_cast<uint32_t>(framePtr->netSrc()));     // [offset:  2]
+        serializer.write(static_cast<uint32_t>(framePtr->netDst()));     // [offset:  3]
+        serializer.write(static_cast<uint32_t>(framePtr->msgId()));      // [offset:  4] usually used as host frame num
 
-		serializer.write(frameBuf,frame->size());
+        //--- frame data
+        serializer.write(static_cast<uint32_t>(frame->pixelSize()));     // [offset:  5]
+        serializer.write(static_cast<uint32_t>(frame->height()));        // [offset:  6]
+        serializer.write(static_cast<uint32_t>(frame->width()));         // [offset:  7]
+
+        //--- frame metainfo
+        frame->metaInfo().serialize(serializer);                         // [offset:  8]
+
+        //--- frame pixel buf
+        serializer.write(static_cast<uint8_t*>(frame->getPixelBuf()),frame->byteSize());
         return serializer.streamLen();
 	} else {
         return 0;
 	}
+}
+
+//-----------------------------------------------------------------------------
+template<typename T> bool deserializeFrame(TRawFramePtr framePtr, void* src, uint32_t srcLen)
+{
+    T* frame;
+    if(framePtr && (frame = checkMsg<T>(framePtr))) {
+        uint32_t* srcPtr32 = static_cast<uint32_t*>(src);
+
+        //---
+        if(*srcPtr32++ != 0)                   // [offset:  0] 'magic number' check
+            return false;
+
+        //--- frame container data
+        ++srcPtr32;                            // [offset:  1] msgClassId - existed in serialized frame but not used
+        framePtr->setNetSrc(*srcPtr32++);      // [offset:  2] netSrc
+        framePtr->setNetDst(*srcPtr32++);      // [offset:  3] netDst
+        framePtr->setMsgId(*srcPtr32++);       // [offset:  4] msgId      - usually used as host frame num
+        //--- msgPoolId - not existed in serialized frame and not used
+
+        //--- frame compatibility check
+        if(frame->pixelSize() != *srcPtr32++)  // [offset:  5] pixelSize
+            return false;
+        if(frame->height() != *srcPtr32++)     // [offset:  6] frameHeight
+            return false;
+        if(frame->width() != *srcPtr32++)      // [offset:  7] frameWidth
+            return false;
+
+        //--- frame metainfo
+        void* pixelBuf = TMetaInfo::deserialize(srcPtr32, frame->metaInfo());
+        if(!pixelBuf)
+            return false;
+
+        //--- frame data
+        std::memcpy(frame->getPixelBuf(),pixelBuf,frame->byteSize());
+
+        //--- size check (optional)
+        if(((static_cast<uint8_t*>(pixelBuf) - static_cast<uint8_t*>(src)) + frame->byteSize()) != srcLen)
+            return false;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 #endif // FRAME_H
