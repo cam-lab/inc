@@ -361,7 +361,7 @@ template<typename T> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst
         serializer.write(static_cast<uint32_t>(framePtr->msgClassId())); // [offset:  1]
         serializer.write(static_cast<uint32_t>(framePtr->netSrc()));     // [offset:  2]
         serializer.write(static_cast<uint32_t>(framePtr->netDst()));     // [offset:  3]
-        serializer.write(static_cast<uint32_t>(framePtr->msgId()));      // [offset:  4] host frame num
+        serializer.write(static_cast<uint32_t>(framePtr->msgId()));      // [offset:  4] usually used as host frame num
 
         //--- frame data
         serializer.write(static_cast<uint32_t>(frame->pixelSize()));     // [offset:  5]
@@ -386,22 +386,24 @@ template<typename T> bool deserializeFrame(TRawFramePtr framePtr, void* src, uin
     if(framePtr && (frame = checkMsg<T>(framePtr))) {
         uint32_t* srcPtr32 = static_cast<uint32_t*>(src);
 
-        //--- 'magic number' check
-        if(srcPtr32[0] != 0) {
+        //---
+        if(*srcPtr32++ != 0)                   // [offset:  0] 'magic number' check
             return false;
-        }
-
-        //--- frame compatibility check
-        if((frame->pixelSize() != srcPtr32[5]) || (frame->height() != srcPtr32[6]) || (frame->width() != srcPtr32[7])) {
-            return false;
-        }
 
         //--- frame container data
-        // msgClassId - not changed (srcPtr32[1])
-        // msgPoolId  - not changed (really it's buf number in pool), this data is not serialized
-        framePtr->setNetSrc(srcPtr32[2]);
-        framePtr->setNetDst(srcPtr32[3]);
-        framePtr->setMsgId(srcPtr32[4]);
+        ++srcPtr32;                            // [offset:  1] msgClassId - existed in serialized frame but not used
+        framePtr->setNetSrc(*srcPtr32++);      // [offset:  2] netSrc
+        framePtr->setNetDst(*srcPtr32++);      // [offset:  3] netDst
+        framePtr->setMsgId(*srcPtr32++);       // [offset:  4] msgId      - usually used as host frame num
+        //--- msgPoolId - not existed in serialized frame and not used
+
+        //--- frame compatibility check
+        if(frame->pixelSize() != *srcPtr32++)  // [offset:  5] pixelSize
+            return false;
+        if(frame->height() != *srcPtr32++)     // [offset:  6] frameHeight
+            return false;
+        if(frame->width() != *srcPtr32++)      // [offset:  7] frameWidth
+            return false;
 
         //--- frame data
         const uint32_t FrameInfoLen = 8*sizeof(uint32_t);
