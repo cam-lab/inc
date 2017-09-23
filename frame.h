@@ -102,6 +102,22 @@ class TMetaInfo
         static uint32_t MetaInfoObjRawLen() { return 4*sizeof(uint32_t) + MetaBufSize(); }
 
         //---
+        static void* deserialize(void* src, TMetaInfo& obj)
+        {
+            uint32_t* srcPtr32 = static_cast<uint32_t*>(src);
+            if(obj.MetaBufSize() != *srcPtr32++)                    // [offset:  0] MetaBufSize() check
+                return 0;
+            if(obj.metaElemSize() != *srcPtr32++)                   // [offset:  1] metaElemSize() check
+                return 0;
+            obj.mWriteIdx       = (*srcPtr32++)/obj.metaElemSize(); // [offset:  2] metaInfoByteSize()
+            obj.mAppendInfoSize = (*srcPtr32++)/obj.metaElemSize(); // [offset:  3] metaAppendInfoByteSize()
+
+            std::memcpy(obj.mMetaBuf,srcPtr32,obj.MetaBufSize());   // [offset:  4] mMetaBuf
+            srcPtr32 += (obj.MetaBufSize()/sizeof(uint32_t));
+            return srcPtr32;
+        }
+
+        //---
         TMetaInfo& operator=(const TMetaInfo& right)
         {
             //qDebug() << "TMetaInfo::operator=";
