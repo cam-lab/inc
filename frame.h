@@ -99,7 +99,6 @@ class TMetaInfo
             serializer.write(mMetaBuf,MetaBufSize());
             return serializer.isOk();
         }
-        static uint32_t MetaInfoObjRawLen() { return 4*sizeof(uint32_t) + MetaBufSize(); }
 
         //---
         static void* deserialize(void* src, TMetaInfo& obj)
