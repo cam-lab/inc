@@ -427,6 +427,10 @@ template<typename T> bool deserializeFrame(TRawFramePtr framePtr, void* src, uin
 
         //--- frame data
         std::memcpy(frame->getPixelBuf(),pixelBuf,frame->byteSize());
+
+        //--- size check (optional)
+        if(((static_cast<uint8_t*>(pixelBuf) - static_cast<uint8_t*>(src)) + frame->byteSize()) != srcLen)
+            return false;
         return true;
     } else {
         return false;
