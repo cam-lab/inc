@@ -73,7 +73,8 @@ namespace IP_QPIPE_LIB
     struct TPipeTxTransfer
     {
         unsigned pipeKey;
-        uint8_t* dataBuf;
+        //uint8_t* dataBuf;
+        void*    dataBuf;
         uint32_t dataLen;
         bool     rxMustBePresent;
 
@@ -112,7 +113,8 @@ namespace IP_QPIPE_LIB
     struct TPipeRxTransfer
     {
         unsigned pipeKey;
-        uint8_t* dataBuf;
+        //uint8_t* dataBuf;
+        void*    dataBuf;
         uint32_t dataLen;
     };
 
