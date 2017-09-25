@@ -31,6 +31,8 @@ namespace IP_QPIPE_LIB
 {
         IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus createPipeViewTx(TPipeTxParams& params);
         IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus createPipeViewRx(TPipeRxParams& params);
+        IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus deletePipeViewTx(unsigned pipeKey);
+        IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus deletePipeViewRx(unsigned pipeKey);
         IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus sendData(TPipeTxTransfer& txTransfer);
         IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus sendDataFuncObj(TPipeTxTransferFuncObj& txTransfer);
         IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus readData(TPipeRxTransfer& rxTransfer, int timeout = -1);
