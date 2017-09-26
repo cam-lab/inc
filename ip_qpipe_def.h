@@ -119,6 +119,18 @@ namespace IP_QPIPE_LIB
         uint32_t dataLen;
     };
 
+    //---
+    typedef bool (*RxTransferFunc)(void* obj, uint8_t* src, uint32_t len);
+    struct TPipeRxTransferFuncObj
+    {
+        unsigned       pipeKey;
+        RxTransferFunc transferFunc;
+        void*          obj;
+
+        //--- DEBUG
+        uint32_t dataLen;
+    };
+
 }
 
 #ifdef __cplusplus
