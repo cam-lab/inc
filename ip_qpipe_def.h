@@ -33,7 +33,8 @@ namespace IP_QPIPE_LIB
         DataParamError      = -12, // bad data size(rx/tx) or bad buf ptr (tx)
         TimeoutError        = -13, // rx
         NoRxDataError       = -14, // "unpossible" error - no really data to read but we have info "data present"
-        RxDataLenError      = -15  // chunk data len is zero or less than rx buf len
+        RxDataLenError      = -15, // chunk data len is zero or less than rx buf len
+        RxDataFuncObjError  = -16  // error when 'RxTransferFunc' func called in the body of 'readDataFuncObj' func
 
     } TStatus;
 
@@ -115,6 +116,18 @@ namespace IP_QPIPE_LIB
         unsigned pipeKey;
         //uint8_t* dataBuf;
         void*    dataBuf;
+        uint32_t dataLen;
+    };
+
+    //---
+    typedef bool (*RxTransferFunc)(void* obj, uint8_t* src, uint32_t len);
+    struct TPipeRxTransferFuncObj
+    {
+        unsigned       pipeKey;
+        RxTransferFunc transferFunc;
+        void*          obj;
+
+        //--- DEBUG
         uint32_t dataLen;
     };
 

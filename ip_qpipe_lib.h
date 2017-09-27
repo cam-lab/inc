@@ -36,6 +36,7 @@ namespace IP_QPIPE_LIB
         IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus sendData(TPipeTxTransfer& txTransfer);
         IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus sendDataFuncObj(TPipeTxTransferFuncObj& txTransfer);
         IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus readData(TPipeRxTransfer& rxTransfer, int timeout = -1);
+        IP_QPIPE_DLL_API IP_QPIPE_LIB::TStatus readDataFuncObj(TPipeRxTransferFuncObj& rxTransfer, int timeout = -1);
 }
 
 #ifdef __cplusplus
