@@ -370,21 +370,25 @@ template<typename T> uint32_t serializeFrame(TRawFramePtr framePtr, uint8_t* dst
         TSerializer serializer(dst,maxLen);
 
         //--- test data
-        serializer.write(static_cast<uint32_t>(0));                      // [offset:  0] 'magic number'
+        serializer.write(static_cast<uint32_t>(0));                      // [offset:    0] 'magic number'
 
         //--- frame container data
-        serializer.write(static_cast<uint32_t>(framePtr->msgClassId())); // [offset:  1]
-        serializer.write(static_cast<uint32_t>(framePtr->netSrc()));     // [offset:  2]
-        serializer.write(static_cast<uint32_t>(framePtr->netDst()));     // [offset:  3]
-        serializer.write(static_cast<uint32_t>(framePtr->msgId()));      // [offset:  4] usually used as host frame num
+        serializer.write(static_cast<uint32_t>(framePtr->msgClassId())); // [offset:    1]
+        CfgDefs::TNetAddr netSrc = framePtr->netSrc();
+        serializer.write(static_cast<uint32_t>(netSrc >> 32));           // [offset:    2]
+        serializer.write(static_cast<uint32_t>(netSrc));                 // [offset:    3]
+        CfgDefs::TNetAddr netDst = framePtr->netDst();
+        serializer.write(static_cast<uint32_t>(netDst >> 32));           // [offset:    4]
+        serializer.write(static_cast<uint32_t>(netDst));                 // [offset:    5]
+        serializer.write(static_cast<uint32_t>(framePtr->msgId()));      // [offset:    6] usually used as host frame num
 
         //--- frame data
-        serializer.write(static_cast<uint32_t>(frame->pixelSize()));     // [offset:  5]
-        serializer.write(static_cast<uint32_t>(frame->height()));        // [offset:  6]
-        serializer.write(static_cast<uint32_t>(frame->width()));         // [offset:  7]
+        serializer.write(static_cast<uint32_t>(frame->pixelSize()));     // [offset:    7]
+        serializer.write(static_cast<uint32_t>(frame->height()));        // [offset:    8]
+        serializer.write(static_cast<uint32_t>(frame->width()));         // [offset:    9]
 
         //--- frame metainfo
-        frame->metaInfo().serialize(serializer);                         // [offset:  8]
+        frame->metaInfo().serialize(serializer);                         // [offset:   10]
 
         //--- frame pixel buf
         serializer.write(static_cast<uint8_t*>(frame->getPixelBuf()),frame->byteSize());
@@ -402,22 +406,34 @@ template<typename T> bool deserializeFrame(TRawFramePtr framePtr, void* src, uin
         uint32_t* srcPtr32 = static_cast<uint32_t*>(src);
 
         //---
-        if(*srcPtr32++ != 0)                   // [offset:  0] 'magic number' check
+        if(*srcPtr32++ != 0)                   // [offset:    0] 'magic number' check
             return false;
 
         //--- frame container data
-        ++srcPtr32;                            // [offset:  1] msgClassId - existed in serialized frame but not used
-        framePtr->setNetSrc(*srcPtr32++);      // [offset:  2] netSrc
-        framePtr->setNetDst(*srcPtr32++);      // [offset:  3] netDst
-        framePtr->setMsgId(*srcPtr32++);       // [offset:  4] msgId      - usually used as host frame num
+        ++srcPtr32;                            // [offset:    1] msgClassId - existed in serialized frame but not used
+
+        //---
+        uint32_t netSrcHi = *srcPtr32++;       // [offset:    2] netSrc (hi)
+        uint32_t netSrcLo = *srcPtr32++;       // [offset:    3] netSrc (lo)
+        CfgDefs::TNetAddr netSrc = (static_cast<CfgDefs::TNetAddr>(netSrcHi) << 32) | netSrcLo;
+        framePtr->setNetSrc(netSrc);
+
+        //---
+        uint32_t netDstHi = *srcPtr32++;       // [offset:    4] netDst (hi)
+        uint32_t netDstLo = *srcPtr32++;       // [offset:    5] netDst (lo)
+        CfgDefs::TNetAddr netDst = (static_cast<CfgDefs::TNetAddr>(netDstHi) << 32) | netDstLo;
+        framePtr->setNetDst(netDst);
+
+        //---
+        framePtr->setMsgId(*srcPtr32++);       // [offset:    6] msgId      - usually used as host frame num
         //--- msgPoolId - not existed in serialized frame and not used
 
         //--- frame compatibility check
-        if(frame->pixelSize() != *srcPtr32++)  // [offset:  5] pixelSize
+        if(frame->pixelSize() != *srcPtr32++)  // [offset:    7] pixelSize
             return false;
-        if(frame->height() != *srcPtr32++)     // [offset:  6] frameHeight
+        if(frame->height() != *srcPtr32++)     // [offset:    8] frameHeight
             return false;
-        if(frame->width() != *srcPtr32++)      // [offset:  7] frameWidth
+        if(frame->width() != *srcPtr32++)      // [offset:    9] frameWidth
             return false;
 
         //--- frame metainfo
