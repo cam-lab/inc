@@ -85,6 +85,7 @@ class TMetaInfo
         uint32_t metaBufByteSize() const { return MetaBufSize(); }
         uint32_t metaAppendInfoSize() const { return mAppendInfoSize; }
         uint32_t metaAppendInfoByteSize() const { return mAppendInfoSize*metaElemSize(); }
+        const void* getMetaInfoBuf() const { return mMetaBuf; }
 
         //---
         bool serialize(TSerializer& serializer)
