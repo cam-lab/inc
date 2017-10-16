@@ -430,11 +430,11 @@ template<typename T> bool deserializeFrame(TRawFramePtr framePtr, void* src, uin
         //--- msgPoolId - not existed in serialized frame and not used
 
         //--- frame compatibility check
-        if(frame->pixelSize() != *srcPtr32++)  // [offset:    7] pixelSize
+        if(static_cast<uint32_t>(frame->pixelSize()) != *srcPtr32++)  // [offset:    7] pixelSize
             return false;
-        if(frame->height() != *srcPtr32++)     // [offset:    8] frameHeight
+        if(static_cast<uint32_t>(frame->height()) != *srcPtr32++)     // [offset:    8] frameHeight
             return false;
-        if(frame->width() != *srcPtr32++)      // [offset:    9] frameWidth
+        if(static_cast<uint32_t>(frame->width()) != *srcPtr32++)      // [offset:    9] frameWidth
             return false;
 
         //--- frame metainfo
@@ -446,7 +446,7 @@ template<typename T> bool deserializeFrame(TRawFramePtr framePtr, void* src, uin
         std::memcpy(frame->getPixelBuf(),pixelBuf,frame->byteSize());
 
         //--- size check (optional)
-        if(((static_cast<uint8_t*>(pixelBuf) - static_cast<uint8_t*>(src)) + frame->byteSize()) != srcLen)
+        if(((static_cast<uint8_t*>(pixelBuf) - static_cast<uint8_t*>(src)) + static_cast<uint32_t>(frame->byteSize())) != srcLen)
             return false;
         return true;
     } else {
