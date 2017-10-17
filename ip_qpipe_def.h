@@ -32,7 +32,7 @@ namespace IP_QPIPE_LIB
         RxNotPresentError   = -11, // attempt to send data when 'rxMustBePresent' set to 'true' and no any rx pipe views
         DataParamError      = -12, // bad data size(rx/tx) or bad buf ptr (tx)
         TimeoutError        = -13, // rx
-        NoRxDataError       = -14, // "unpossible" error - no really data to read but we have info "data present"
+        NoRxDataError       = -14, // "impossible" error - no really data to read but we have info "data present"
         RxDataLenError      = -15, // chunk data len is zero or less than rx buf len
         RxDataFuncObjError  = -16  // error when 'RxTransferFunc' func called in the body of 'readDataFuncObj' func
 
