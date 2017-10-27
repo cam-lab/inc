@@ -34,7 +34,8 @@ namespace IP_QPIPE_LIB
         TimeoutError        = -13, // rx
         NoRxDataError       = -14, // "impossible" error - no really data to read but we have info "data present"
         RxDataLenError      = -15, // chunk data len is zero or less than rx buf len
-        RxDataFuncObjError  = -16  // error when 'RxTransferFunc' func called in the body of 'readDataFuncObj' func
+        RxDataFuncObjError  = -16, // error when 'RxTransferFunc' func called in the body of 'readDataFuncObj' func
+        RxPipeNotActive     = -17  // warn when tx pipe disconneted, than rx pipe disable DataBlock, but we entry to readData func
 
     } TStatus;
 
