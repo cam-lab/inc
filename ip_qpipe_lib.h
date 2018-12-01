@@ -18,13 +18,13 @@
 #include "ip_qpipe_def.h"
 
 #ifdef IP_QPIPE_LIB_EXPORT
-    //#define IP_QPIPE_DLL_API Q_DECL_EXPORT
+    #define IP_QPIPE_DLL_API Q_DECL_EXPORT
     //#define IP_QPIPE_DLL_API __declspec(dllexport)
-    #define IP_QPIPE_DLL_API
+    //#define IP_QPIPE_DLL_API
 #else
-    //#define IP_QPIPE_DLL_API Q_DECL_IMPORT
+    #define IP_QPIPE_DLL_API Q_DECL_IMPORT
     //#define IP_QPIPE_DLL_API __declspec(dllimport)
-    #define IP_QPIPE_DLL_API
+    //#define IP_QPIPE_DLL_API
 #endif
 
 namespace IP_QPIPE_LIB
