@@ -30,7 +30,7 @@ inline QString getElapsedTime(const QElapsedTimer& timer)
     QString timeStr = QString("%1").arg(timer.nsecsElapsed()/1000,TimeGroupNum*TimeGroupLen,10,QLatin1Char('0'));
     for(int n = TimeGroupNum-1; n; --n)
         timeStr.insert(n*TimeGroupLen,':');
-	timeStr += " us";
+    timeStr += " us";
     return timeStr;
 }
 
@@ -38,31 +38,31 @@ inline QString getElapsedTime(const QElapsedTimer& timer)
 //-----------------------------------------------------------------------------
 class TAppSingleton
 {
-	public:
+    public:
         TAppSingleton(QString name) : mAppSem(name + "_SEM", 1), mSharedMem(name + "_MEM"), mIsRunning(false)
-		{
-			mAppSem.acquire();
+        {
+            mAppSem.acquire();
 
-			{
+            {
                 QSharedMemory sharedMem(name + "_MEM");
-				sharedMem.attach();
-			}
-			if(mSharedMem.attach()) {
-				mIsRunning = true;
-			}
-			else {
-				mSharedMem.create(1);
-				mIsRunning = false;
-			}
-			mAppSem.release();
-		}
-		~TAppSingleton() {}
-		bool isRunning() const { return mIsRunning; }
+                sharedMem.attach();
+            }
+            if(mSharedMem.attach()) {
+                mIsRunning = true;
+            }
+            else {
+                mSharedMem.create(1);
+                mIsRunning = false;
+            }
+            mAppSem.release();
+        }
+        ~TAppSingleton() {}
+        bool isRunning() const { return mIsRunning; }
 
-	private:
-        QSystemSemaphore	mAppSem;
-		QSharedMemory		mSharedMem;
-        bool				mIsRunning;
+    private:
+        QSystemSemaphore    mAppSem;
+        QSharedMemory       mSharedMem;
+        bool                mIsRunning;
 };
 
 }
